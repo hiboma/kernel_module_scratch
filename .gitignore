@@ -1,0 +1,46 @@
+# Created by http://www.gitignore.io
+
+### C ###
+# Object files
+*.o
+*.o.*
+*.ko
+*.ko.*
+*.obj
+*.elf
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# linux kernel
+*.mod.c
+modules.order
+Module.symvers
+.tmp_versions
+
+# vagrant
+.vagrant
+
+# GNU global
+GPATH
+GRTAGS
+GTAGS
+
+# ruby
+.bundle
+vendor/*
