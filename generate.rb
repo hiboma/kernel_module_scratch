@@ -10,7 +10,7 @@ File.write("#{mod}/#{mod}.c", <<-"....")
 #include <linux/module.h>
 
 MODULE_AUTHOR("hiroya");
-MODULE_DESCRIPTION("WARN_ON test");
+MODULE_DESCRIPTION("#{mod} test");
 MODULE_LICENSE("GPL");
 
 static int __init #{mod}_init(void)
