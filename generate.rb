@@ -38,4 +38,8 @@ insmod:
 
 rmmod:
 	rmmod #{mod}.ko
+
+reload:
+	-make rmmod
+	make insmod
 ....
