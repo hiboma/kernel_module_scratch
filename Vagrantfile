@@ -19,6 +19,13 @@ $script = <<SCRIPT
     which git || yum install -y git
     mkdir -p /mnt/nukofs
 )
+
+:
+: benri-tools
+(
+    which strace || yum install -y git
+    which vim    || yum install -y vim-enhanced
+)
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
