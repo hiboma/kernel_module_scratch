@@ -35,8 +35,7 @@ cat <<EOS >/etc/rc.d/rc.local
 
 touch /var/lock/subsys/local
 
-mkdir -p /mnt/debugfs
-mount -t debugfs debugfs /mnt/debugfs
+mount -t debugfs debugfs /sys/kernel/debug
 EOS
 )
 SCRIPT
