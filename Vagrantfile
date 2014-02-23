@@ -26,6 +26,19 @@ $script = <<SCRIPT
     which strace || yum install -y git
     which vim    || yum install -y vim-enhanced
 )
+
+:
+: debugfs
+(
+cat <<EOS >/etc/rc.d/rc.local
+#!/bin/sh
+
+touch /var/lock/subsys/local
+
+mkdir -p /mnt/debugfs
+mount -t debugfs debugfs /mnt/debugfs
+EOS
+)
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
