@@ -4,7 +4,7 @@
  * wait_queue_head_t と違って、task_sruct のポインタは自分で退避しておく
  * state, schedule() の呼び出しも自分でやる
 
- ## API
+## API
 
   * wake_up_process
   * schedule, schedule_timeout
