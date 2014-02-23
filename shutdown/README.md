@@ -2,8 +2,7 @@
 
  * http://stackoverflow.com/questions/18296686/shutdown-embedded-linux-from-kernel-space
  * insmod したら shutdown !!!1
-
- ```
+```
  ＿人人人人人人＿
 ＞　shutdown　＜
 ￣Y^Y^Y^Y^Y￣
