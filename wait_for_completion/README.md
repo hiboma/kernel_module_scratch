@@ -45,14 +45,15 @@ wait_queue_head_t を利用した実装
    * TASK_INTERRUPTIBLE, TASK_UNINTERRUPTIBLE との使い分けはなんなのだろう
  * complete, complete_all
    * `x->done += UINT_MAX/2;`
-   * done に めちゃくちゃ大きな数値を入れて無理矢理感のある終了
+   * done に めちゃくちゃ大きな数値を入れて無理矢理感のある終了?
  * schedule_timeout
 
 ```
 vagrant   4852  0.0  0.0   6076   560 pts/2    D+   01:36   0:00              \_ cat /mnt/debugfs/wait_for_completion/completion
 ```
 
-*_timeout 群は内部で long の最大値 (MAX_SCHEDULE_TIMEOUT = LONG_MAX = ((long)(~0UL>>1))) をタイムアウトに指定している
+ *_timeout 群は内部で long の最大値 (MAX_SCHEDULE_TIMEOUT = LONG_MAX = ((long)(~0UL>>1))) をタイムアウトに指定している
+   * MAX_SCHEDULE_TIMEOUT を渡すとタイマをセットせず schedule() する
 
 ```c
 /**

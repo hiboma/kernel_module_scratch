@@ -75,8 +75,6 @@ sleep_on_common(wait_queue_head_t *q, int state, long timeout)
 }
 ```
 
- * MAX_SCHEDULE_TIMEOUT を実際にタイムアウトしそうにない値をセットするのは wait_for_completion と同じやり方
-
 ### wait_for_completion との違いは?
 
  * wait_for_completion はスケジューリングして条件が満たされるかを確認している
