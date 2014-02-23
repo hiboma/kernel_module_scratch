@@ -41,10 +41,10 @@ wait_queue_head_t を利用した実装
    * TASK_INTERRUPTIBLE
  * wait_for_completion_killable
    * TASK_KILLABLE
-   * ps の STATE は D だけど、シグナルは受け付ける
+   * ps の STATE は D だけど、「fatalなシグナル」 = SIGKILL は受け付ける
    * TASK_INTERRUPTIBLE, TASK_UNINTERRUPTIBLE との使い分けはなんなのだろう
      * => https://www.ibm.com/developerworks/jp/linux/library/l-task-killable/, http://lwn.net/Articles/288056/
-     * `fatal_signal_pending(struct task_struct *p)` が true => SIGKILL を受けた場合だけシグナルを受け付ける TASK_UNINTERRUPTIBLE
+     * `fatal_signal_pending(struct task_struct *p)` が true なら シグナルを受け付ける TASK_UNINTERRUPTIBLE
 ```c
 static inline int __fatal_signal_pending(struct task_struct *p)
 {
