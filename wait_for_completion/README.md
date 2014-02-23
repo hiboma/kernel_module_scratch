@@ -43,6 +43,14 @@ wait_queue_head_t を利用した実装
    * TASK_KILLABLE
    * ps の STATE は D だけど、シグナルは受け付ける
    * TASK_INTERRUPTIBLE, TASK_UNINTERRUPTIBLE との使い分けはなんなのだろう
+     * => https://www.ibm.com/developerworks/jp/linux/library/l-task-killable/, http://lwn.net/Articles/288056/
+     * `fatal_signal_pending(struct task_struct *p)` が true => SIGKILL を受けた場合だけシグナルを受け付ける TASK_UNINTERRUPTIBLE
+```c
+static inline int __fatal_signal_pending(struct task_struct *p)
+{
+	return unlikely(sigismember(&p->pending.signal, SIGKILL));
+}
+```
  * complete, complete_all
    * `x->done += UINT_MAX/2;`
    * done に めちゃくちゃ大きな数値を入れて無理矢理感のある終了?
