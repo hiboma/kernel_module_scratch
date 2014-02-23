@@ -9,6 +9,7 @@ MODULE_LICENSE("GPL");
 static u8 value;
 static int file_value;
 static struct dentry *dentry_u8, *dentry_file;
+static wait_queue_head_t queue;
 
 static ssize_t debugfs_test_read(struct file *file, char __user *userbuf,
 				 size_t count, loff_t *ppos)
