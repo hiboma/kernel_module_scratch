@@ -7,7 +7,7 @@ MODULE_LICENSE("GPL");
 static int __init kmalloc_init(void)
 {
 	/* GFP_KERNEL */
-	char *p, *pp;
+	char *p, *pp, *zerop;
 
 	p = kmalloc(4, GFP_KERNEL);
 	if (!p)  {
@@ -34,8 +34,19 @@ static int __init kmalloc_init(void)
 	pp[2] = 'c';
 	pp[3] = '\0';
 	printk("kmalloc GFP_ATOMIC - %s\n", pp);
-
+    
 	kfree(pp);
+
+    zerop = kzalloc(4, GFP_KERNEL);
+	zerop[0] = 'a';
+	zerop[1] = 'b';
+	zerop[2] = 'c';
+    // zero padding されているからいらない
+    // __GFP_ZERO フラグが立っている
+    // zerop[3] = '\0';
+    printk("kzalloc GFP_KERNEL - %s\n", zerop);
+    kfree(zerop);
+    
 	return 0;
 }
 

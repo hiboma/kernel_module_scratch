@@ -1,9 +1,19 @@
+# kmalloc
+
+## API
+
+ * kmalloc
+ * kzalloc
 
 ## kmalloc(size_t size, int flags)
 
- * 任意のサイズで物理的に連続したメモリを確保
+ * 任意のサイズで __物理的__ に連続したメモリを確保
  * flags によって動作が異なる
  * 通常のポインタとして操作してよい?
+
+## kzalloc
+
+ * __GFP_ZERO をたてて内部で memset(.., 0,..) でゼロ初期化してくれる
 
 ### GFP_KERNEL
 
