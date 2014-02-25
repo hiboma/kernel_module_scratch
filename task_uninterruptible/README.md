@@ -11,9 +11,12 @@ $ cat /mnt/debugfs/task_uninterruptible/file &
 $ cat /mnt/debugfs/task_uninterruptible/file &
 ```
 
+ * I/O 以外にもロック待ちなどで TASK_UNINTERRUPTIBLE になる契機がある
+   * ロック待ち TASK_UNINTERRUPTIBLE なプロセスが一杯いるだけで
+
 ## 2.6.32
 
-```
+```c
 /*
  * calc_load - update the avenrun load estimates 10 ticks after the
  * CPUs have updated calc_load_tasks.
@@ -40,7 +43,7 @@ void calc_global_load(void)
 rq に nr_running と nr_uninterruptible があるのは古いスケジューラと一緒
 
 
-```
+```c
 /*
  * Either called from update_cpu_load() or from a cpu going idle
  */

@@ -7,13 +7,25 @@
  * register_chrdev, unregister_chrdev
    * major 番号/パスを保持しておく必要がある
    * mknod しないとデバイスを扱えない
- * struct file_operations
-
-``` 
+   * 0 を渡すと major 番号を動的に割り当て
+   * name は /dev/ 以下に作られるファイル名とは関連が無い
+     * デバイスのオーナー管理のための名前
+```c
+static inline int register_chrdev(unsigned int major, const char *name,
+				  const struct file_operations *fops)
+{
+	return __register_chrdev(major, 0, 256, name, fops);
+}
+```
+```
 sudo mknod /dev/register_chrdev c 244 0
 ```
 
-----
+ * simple_read_from_buffer (libfs.c)
+   * カーネル空間のバッファからユーザランドのバッファへコピーする際の便利メソッド
+   * カーネル空間からカーネル空間でコピーする際は memory_read_from_buffer てのがある
+
+## その他
 
 major 番号の割り当てのAPI間違えてて( return major してた) register_chrdev がずっこけた際の dmesg
  

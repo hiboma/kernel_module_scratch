@@ -22,6 +22,11 @@ http://wiki.bit-hive.com/north/pg/kthread_run%A5%DE%A5%AF%A5%ED のコードを�
 
  * todo
 
+## TODO
+
+ * カーネルスレッドの TASK_INTERRUPTIBLE/TASK_UNINTERRUPTIBLE とシグナル
+ * ユーザ空間からシグナル送っても応答しないけど、カーネル空間から送ると応答する?
+
 ## sandbox
 
  * `set_current_state(TASK_UNINTERRUPTIBLE)` にして schedule_timeout の数値をめいいっぱい伸ばすと下記ログを出す
@@ -46,3 +51,4 @@ Feb 12 15:51:55 vagrant-centos65 kernel: [<ffffffff8100c200>] ? child_rip+0x0/0x
 ```
 
 http://ossmpedia.org/messages/linux/2.6.32-279.EL6/2001028.ja のログと同じである
+

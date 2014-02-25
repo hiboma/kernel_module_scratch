@@ -1,21 +1,30 @@
 #include <linux/module.h>
 #include <linux/fs.h>
+#include <asm-generic/uaccess.h>
 
 MODULE_AUTHOR("hiroya");
 MODULE_DESCRIPTION("register_chrdev test");
 MODULE_LICENSE("GPL");
 
 static int major;
+static char buffer[200];
 
 static ssize_t chrdev_read(struct file *file, char __user *buf,
 			 size_t count, loff_t *pos)
 {
-	return 0;
+	return simple_read_from_buffer(buf, count, pos, buffer, 200);
 }
 
 static ssize_t chrdev_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *pos)
 {
+	if (count > sizeof(buffer) -1)
+		return -EINVAL;
+	
+	if (copy_from_user(buffer, buf, count))
+		return -EFAULT;
+
+	buffer[count] = '\0';
 	return count;
 }
 
