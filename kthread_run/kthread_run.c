@@ -15,7 +15,9 @@ static void my_kthread_main(void)
 {
        set_current_state(TASK_INTERRUPTIBLE);
        // sleep に相当
-       schedule_timeout(HZ);
+       schedule_timeout(1 * HZ);
+
+       // 起床後何かをする
        printk("kthread:%ld\n", jiffies);
 }
 
