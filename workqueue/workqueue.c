@@ -12,30 +12,32 @@ static struct workqueue_struct *queue;
 
 typedef struct {
 	struct work_struct work;
-	pid_t pid;
 } job_t;
 
-job_t *job;
+static job_t *job;
 
 // ワーカーのコールバック
 static void callback_function(struct work_struct *work)
 {
-	job_t *j;
+	job_t *current_job;
 
-	printk("I'm waiting %d\n", current->pid);
+	printk("[%d] I'm waiting for schedule_timeout\n", current->pid);
 	set_current_state(TASK_INTERRUPTIBLE);
+	/* 3秒待つ */
 	schedule_timeout(3 * HZ);
 
-	j = (job_t *)work;
-	printk("Hello,world %d, caller is %d\n", current->pid, j->pid);
+	current_job = (job_t *)work;
+	printk("[%d] Hello world\n", current->pid);
 }
 
 static ssize_t wq_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *pos)
 {
 	// writeするとワーカーにキューイングする
+	// 非同期で処理される
 	if (!queue_work(queue, (struct work_struct *)job)) {
 		printk("work is pending\n");
+		return -EAGAIN;
 	}
 	return count;
 }
@@ -46,32 +48,38 @@ static struct file_operations fops = {
 
 static int __init workqueue_init(void)
 {
-	// キューイング用に debugfs でエントリポイントを作る
+	int ret = -ENODEV;
+	
+	/* キューイング用に debugfs でエントリポイントを作る */
 	dir_dentry = debugfs_create_dir("workqueue", NULL);
 	if (!dir_dentry) {
 		printk("failed debugfs_create_dir");
-		return -ENODEV;
+		goto failed;
 	}
 	file_dentry = debugfs_create_file("enqueue", 0666, dir_dentry, &value, &fops);
 
-	// work_struct 用のキューを作成する
+	/* work_struct 用のキューを作成する */
+	ret = -ENODEV;
 	queue = create_workqueue("workqueue-sample");
-	if (!queue) {
-		debugfs_remove_recursive(dir_dentry);
-		return -ENOMEM;
-	}
+	if (!queue)
+		goto remove_debugfs;
 
 	job = (job_t *)kmalloc(sizeof(job_t), GFP_KERNEL);
-	if (!job) {
-		debugfs_remove_recursive(dir_dentry);
-		destroy_workqueue(queue);
-		return -ENOMEM;
-	}
+	if (!job)
+		goto destroy_queue;
 
-	// ワーカーの初期化
+	/* ワーカーの初期化 */
 	INIT_WORK((struct work_struct *)job, callback_function);
-	job->pid = current->pid;
 	return 0;
+
+destroy_queue:
+	destroy_workqueue(queue);
+
+remove_debugfs:
+	debugfs_remove_recursive(dir_dentry);
+
+failed:
+	return ret;
 }
 
 static void __exit workqueue_exit(void)
