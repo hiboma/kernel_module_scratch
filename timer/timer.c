@@ -23,6 +23,7 @@ static int __init timer_init(void)
 
 static void __exit timer_exit(void)
 {
+    del_timer(&timer);
 }
 
 module_init(timer_init);
