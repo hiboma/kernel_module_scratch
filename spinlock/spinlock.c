@@ -41,6 +41,8 @@ static ssize_t spinlock_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *pos)
 {
 	/* ＼(^o^)／ */
+	//spin_lock_irqsave&lock);
+	//spin_lock_irqsave(&lock);
 	spin_lock(&lock);
 	spin_lock(&lock);
 	return count;
