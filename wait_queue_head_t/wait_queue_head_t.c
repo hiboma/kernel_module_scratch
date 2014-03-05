@@ -6,13 +6,13 @@ MODULE_AUTHOR("hiroya");
 MODULE_DESCRIPTION("wait_queue_head_t test");
 MODULE_LICENSE("GPL");
 
-static int use_define_wait = 0;
-static int file_value = 0;
+static int use_define_wait;
+static int file_value;
 static struct dentry *dentry_queue, *dentry_exclusive, *dentry_wait_event;
 
 /* 待ち行列 wait_queue_head_t -> wait_queue_t -> wait_queue_t -> ... */
 static wait_queue_head_t queue;
-static int wait_event_condition = 0;
+static int wait_event_condition;
 
 module_param(use_define_wait, int, 0644);
 
@@ -31,7 +31,7 @@ static ssize_t wait_event_write(struct file *file, const char __user *buf,
 	return count;
 }
 
-static struct file_operations wait_event_fops = {
+static const struct file_operations wait_event_fops = {
 	.read  = wait_event_read,
 	.write = wait_event_write,
 };
@@ -47,7 +47,7 @@ static ssize_t exclusive_read(struct file *file, char __user *buf,
 	if  (use_define_wait) {
 		DEFINE_WAIT(wait);
 
-		printk(KERN_INFO "use DEFINE_WAIT()\n");
+		pr_info("use DEFINE_WAIT()\n");
 		prepare_to_wait_exclusive(&queue, &wait, TASK_UNINTERRUPTIBLE);
 		/*
 		 * avoid race condition
@@ -60,7 +60,7 @@ static ssize_t exclusive_read(struct file *file, char __user *buf,
 	} else {
 		wait_queue_t wait;
 
-		printk(KERN_INFO "use init_waitqueue_entry()\n");
+		pr_info("use init_waitqueue_entry()\n");
 		init_waitqueue_entry(&wait, current);
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		add_wait_queue_exclusive(&queue, &wait);
@@ -75,40 +75,40 @@ static ssize_t exclusive_read(struct file *file, char __user *buf,
 static ssize_t exclusive_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *pos)
 {
-	/* add_wait_queue_exclusive で追加されたタスクを一個ずつ起床する */
+	/* add_wait_queue_exclusive のタスクを一個ずつ起床 */
 	wake_up(&queue);
-	printk(KERN_INFO "Sleepers, Wakeup\n");
+	pr_info("Sleepers, Wakeup\n");
 	return count;
 }
 
 static ssize_t queue_read(struct file *file, char __user *userbuf,
 				 size_t count, loff_t *ppos)
 {
-	// sleep_on(&queue);
-	// sleep_on_timeout(&queue, 10 * HZ);
-	// interruptible_sleep_on_timeout(&queue, 10 * HZ);
+	/* sleep_on(&queue); */
+	/* sleep_on_timeout(&queue, 10 * HZ); */
+	/* interruptible_sleep_on_timeout(&queue, 10 * HZ); */
 	interruptible_sleep_on(&queue);
 	return 0;
-} 
+}
 
 static ssize_t queue_write(struct file *file, const char __user *buf,
 				  size_t count, loff_t *ppos)
 {
-	// TASK_UNINTERRUPTIBLE は起床させない
-	// wake_up(&queue)
-	// wake_up_all(&queue);
-	// wake_up_interruptible_all(&queue);
+	/* TASK_UNINTERRUPTIBLE は起床させない */
+	/* wake_up(&queue) */
+	/* wake_up_all(&queue); */
+	/* wake_up_interruptible_all(&queue); */
 	wake_up_interruptible_nr(&queue, 1);
-	printk(KERN_INFO "Sleepers, Wakeup\n");
+	pr_info("Sleepers, Wakeup\n");
 	return count;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read  = queue_read,
 	.write = queue_write,
 };
 
-static struct file_operations exclusive_fops = {
+static const struct file_operations exclusive_fops = {
 	.read  = exclusive_read,
 	.write = exclusive_write,
 };
@@ -117,9 +117,10 @@ static int __init wait_queue_head_t_init(void)
 {
 	init_waitqueue_head(&queue);
 
-	dentry_queue = debugfs_create_file("queue", 0666, NULL, &file_value, &fops);
+	dentry_queue = debugfs_create_file("queue", 0666,
+					   NULL, &file_value, &fops);
 	if (!dentry_queue) {
-		printk("Error failed debugfs_create_u8");
+		pr_info("Error failed debugfs_create_u8");
 		return -ENODEV;
 	}
 

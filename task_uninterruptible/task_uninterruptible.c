@@ -13,11 +13,11 @@ static ssize_t tu_read(struct file *file, char __user *buf,
 			 size_t count, loff_t *pos)
 {
 	set_current_state(TASK_UNINTERRUPTIBLE);
-	schedule_timeout(100 *HZ);
+	schedule_timeout(100 * HZ);
 	return 0;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read  = tu_read,
 };
 
@@ -25,11 +25,12 @@ static int __init task_uninterruptible_init(void)
 {
 	dir_dentry = debugfs_create_dir("task_uninterruptible", NULL);
 	if (!dir_dentry) {
-		printk("failed debugfs_create_dir");
+		pr_info("failed debugfs_create_dir");
 		return -ENODEV;
 	}
-	
-	file_dentry = debugfs_create_file("file", 0666, dir_dentry, &value, &fops);
+
+	file_dentry = debugfs_create_file("file", 0666,
+					  dir_dentry, &value, &fops);
 	return 0;
 }
 

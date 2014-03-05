@@ -11,7 +11,7 @@ DECLARE_COMPLETION(done);
 static ssize_t completion_read(struct file *file, const char __user *buf,
 				  size_t count, loff_t *ppos)
 {
-	// TASK_UNINTERRUPTIBLE
+	/* TASK_UNINTERRUPTIBLE */
 	wait_for_completion_killable(&done);
 	return 0;
 }
@@ -23,7 +23,7 @@ static ssize_t completion_write(struct file *file, const char __user *buf,
 	return count;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read	= completion_read,
 	.write	= completion_write,
 };
@@ -31,8 +31,8 @@ static struct file_operations fops = {
 static int __init wait_for_completion_init(void)
 {
 	dentry_dir = debugfs_create_dir("wait_for_completion", NULL);
-	if (!dentry_dir ) {
-		printk("failed to debugfs_create_directory");
+	if (!dentry_dir) {
+		pr_info("failed to debugfs_create_directory");
 		return -ENODEV;
 	}
 	dentry_file = debugfs_create_file("completion", 0666,

@@ -11,7 +11,7 @@ static int __init kmalloc_init(void)
 
 	p = kmalloc(4, GFP_KERNEL);
 	if (!p)  {
-		printk(KERN_ERR "ENOMEM");
+		pr_info("ENOMEM");
 		return 1;
 	}
 
@@ -19,13 +19,13 @@ static int __init kmalloc_init(void)
 	p[1] = 'b';
 	p[2] = 'c';
 	p[3] = '\0';
-	printk("kmalloc GFP_KERNEL - %s\n", p);
+	pr_info("kmalloc GFP_KERNEL - %s\n", p);
 	kfree(p);
 
 	/* GFP_ATOMIC */
 	pp = kmalloc(4, GFP_ATOMIC);
 	if (!pp)  {
-		printk(KERN_ERR "ENOMEM");
+		pr_info("ENOMEM");
 		return 1;
 	}
 
@@ -33,20 +33,20 @@ static int __init kmalloc_init(void)
 	pp[1] = 'b';
 	pp[2] = 'c';
 	pp[3] = '\0';
-	printk("kmalloc GFP_ATOMIC - %s\n", pp);
-    
+	pr_info("kmalloc GFP_ATOMIC - %s\n", pp);
+
 	kfree(pp);
 
-    zerop = kzalloc(4, GFP_KERNEL);
+	zerop = kzalloc(4, GFP_KERNEL);
 	zerop[0] = 'a';
 	zerop[1] = 'b';
 	zerop[2] = 'c';
-    // zero padding されているからいらない
-    // __GFP_ZERO フラグが立っている
-    // zerop[3] = '\0';
-    printk("kzalloc GFP_KERNEL - %s\n", zerop);
-    kfree(zerop);
-    
+	/* zero padding されているからいらない */
+	/* __GFP_ZERO フラグが立っている */
+	/* zerop[3] = '\0'; */
+	pr_info("kzalloc GFP_KERNEL - %s\n", zerop);
+	kfree(zerop);
+
 	return 0;
 }
 

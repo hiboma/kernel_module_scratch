@@ -19,7 +19,7 @@ static ssize_t sem_write(struct file *file, const char __user *buf,
 	ret = down_interruptible(&sem);
 	if (ret)
 		return ret;
-	
+
 	return count;
 }
 
@@ -30,14 +30,15 @@ static ssize_t sem_read(struct file *file, char __user *buf,
 	return 0;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read  = sem_read,
 	.write = sem_write,
 };
 
 static int __init semaphore_init(void)
 {
-	dentry_semaphore = debugfs_create_file("semaphore", 0666, NULL, &value, &fops);
+	dentry_semaphore = debugfs_create_file("semaphore", 0666,
+					       NULL, &value, &fops);
 	return 0;
 }
 

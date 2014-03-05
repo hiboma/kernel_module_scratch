@@ -14,7 +14,7 @@ static void timer_callback(unsigned long __data)
 static int __init timer_init(void)
 {
 	init_timer(&timer);
-	timer.expires  = jiffies + 3*HZ; // 3sec
+	timer.expires  = jiffies + 3*HZ; /* 3sec */
 	timer.data     = 0;
 	timer.function = timer_callback;
 	add_timer(&timer);

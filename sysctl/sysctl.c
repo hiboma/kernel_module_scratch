@@ -6,12 +6,12 @@ MODULE_DESCRIPTION("sysctl test");
 MODULE_LICENSE("GPL");
 
 static int value = 5;
-static int min   = 0;
+static int min;
 static int max   = 100;
 
-static struct ctl_table_header * test_sysctl_header;
+static struct ctl_table_header *test_sysctl_header;
 
-// directory entry in /proc/sys/fugafuga
+/* directory entry in /proc/sys/fugafuga */
 static ctl_table value_table[] = {
 	{
 		.ctl_name	= CTL_UNNUMBERED,
@@ -27,7 +27,7 @@ static ctl_table value_table[] = {
 	{ .ctl_name = 0 },
 };
 
-// subdirectory in /proc/sys
+/* subdirectory in /proc/sys */
 static ctl_table test_root_table[] = {
 	{
 		.ctl_name	= CTL_UNNUMBERED,

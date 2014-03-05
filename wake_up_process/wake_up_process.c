@@ -47,13 +47,13 @@ static ssize_t wup_write(struct file *file, const char __user *buf,
 
 	if (sleeper) {
 		wake_up_process(sleeper);
-		printk("Sleepers, Wake");
+		pr_info("Sleepers, Wake");
 	}
 
 	return count;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read  = wup_read,
 	.write = wup_write,
 };
@@ -62,14 +62,14 @@ static int __init wake_up_process_init(void)
 {
 	debugfs_dir = debugfs_create_dir("wake_up_process", NULL);
 	if (!debugfs_dir) {
-		printk("failed to debugfs_create_dir('wake_up_process')");
+		pr_info("failed to debugfs_create_dir('wake_up_process')");
 		return -ENODEV;
 	}
 
 	debugfs_file = debugfs_create_file("fuga", 0666,
 					   debugfs_dir, &value, &fops);
 	if (!debugfs_file) {
-		printk("failed to debugfs_create_dir('wake_up_process')");
+		pr_info("failed to debugfs_create_dir('wake_up_process')");
 		return -ENODEV;
 	}
 	return 0;

@@ -25,7 +25,7 @@ static ssize_t mutex_read(struct file *file, char __user *buf,
 	return 0;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read	= mutex_read,
 	.write	= mutex_write,
 };

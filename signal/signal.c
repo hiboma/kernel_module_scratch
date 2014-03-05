@@ -29,12 +29,13 @@ static int interval_killer(void *arg)
 			if (!p->mm)
 				continue;
 
-			if (strncmp(p->comm, victim, TASK_COMM_LEN) ==0) {
-				printk("SIGKILL pid = %d, comm=%s\n", p->pid, p->comm);
+			if (strncmp(p->comm, victim, TASK_COMM_LEN) == 0) {
+				pr_info("SIGKILL pid = %d, comm=%s\n",
+				       p->pid, p->comm);
 				force_sig(SIGKILL, p);
 			}
 		}
-		
+
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule_timeout(sleep_interval * HZ);
 	}
@@ -48,7 +49,7 @@ static int __init signal_init(void)
 	if (IS_ERR(killer))
 		return -1;
 
-	printk("sleep_interval=%d, victim=%s\n", sleep_interval, victim);
+	pr_info("sleep_interval=%d, victim=%s\n", sleep_interval, victim);
 	return 0;
 }
 

@@ -15,7 +15,7 @@ static ssize_t spinlock_read(struct file *file, char __user *buf,
 	int counter = 0;
 	spinlock_t *lockp;
 	unsigned long flags;
-	
+
 	spin_lock(&lock);
 	counter++;
 	spin_unlock(&lock);
@@ -41,24 +41,25 @@ static ssize_t spinlock_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *pos)
 {
 	/* ＼(^o^)／ */
-	//spin_lock_irqsave&lock);
-	//spin_lock_irqsave(&lock);
+	/* spin_lock_irqsave&lock);  */
+	/* spin_lock_irqsave(&lock); */
 	spin_lock(&lock);
 	spin_lock(&lock);
 	return count;
 }
 
-static struct file_operations fops = {
+static const struct file_operations fops = {
 	.read  = spinlock_read,
 	.write = spinlock_write,
 };
 
 static int __init spinlock_init(void)
 {
-	dentry_spinlock = debugfs_create_file("spinlock", 0666, NULL, &value, &fops);
-	if (!dentry_spinlock) {
+	dentry_spinlock = debugfs_create_file("spinlock", 0666,
+					      NULL, &value, &fops);
+	if (!dentry_spinlock)
 		return -ENODEV;
-	}
+
 	return 0;
 }
 
