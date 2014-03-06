@@ -19,6 +19,24 @@ $script = <<SCRIPT
     which git || yum install -y git
     mkdir -p /mnt/nukofs
 )
+:
+: install-systemtap
+(
+    # refs http://blogs.computing.dcu.ie/wordpress/mak0/2014/02/13/systemtap-installation-on-centos-6-5/
+    WEB="http://debuginfo.centos.org/6/x86_64/"
+    RELEASE=`uname -r`
+    MACHINE=`uname -m`
+    PKG1="kernel-debuginfo-$RELEASE.rpm"
+    PKG2="kernel-debuginfo-common-$MACHINE-$RELEASE.rpm"
+    wget -c $WEB$PKG1
+    wget -c $WEB$PKG2
+
+    #Build Downloaded debuginfo packages
+    rpm -Uhv kernel-debuginfo-*.rpm
+
+    #Install systemtap and kernel-developemnt packages
+    yum -y install systemtap
+)
 
 :
 : benri-tools
