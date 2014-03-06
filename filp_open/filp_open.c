@@ -1,6 +1,5 @@
 #include <linux/module.h>
 #include <linux/fs.h>
-#include <linux/vmalloc.h>
 #include <linux/bio.h>
 
 MODULE_AUTHOR("hiroya");
