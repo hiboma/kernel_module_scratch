@@ -42,7 +42,7 @@ $script = <<SCRIPT
 :
 : benri-tools
 (
-    which strace || yum install -y git
+    which strace || yum install -y strace
     which vim    || yum install -y vim-enhanced
 )
 
