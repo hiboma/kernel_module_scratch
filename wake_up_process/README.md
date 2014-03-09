@@ -36,7 +36,7 @@ EXPORT_SYMBOL(wake_up_process);
 
 raise_softirq が ksoftirqd を起床させる際に wake_up_process を呼ぶ
 
-```
+```c
 void raise_softirq(unsigned int nr)
 {
 	unsigned long flags;
@@ -74,7 +74,7 @@ wakeup_softirqd の中身は下記の通り
    * softirq は ハードウェア割り込みを受けた CPUごとで実行されるAPI なので per_cpu / __get_cpu_var を使っている
  * wake_up_process で ksoftirqd を起床させて pending している softirq を消化する
 
-```
+```c
 /*
  * we cannot loop indefinitely here to avoid userspace starvation,
  * but we also don't want to introduce a worst case 1/HZ latency
