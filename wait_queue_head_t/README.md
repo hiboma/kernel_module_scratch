@@ -8,10 +8,12 @@
 
 ## API
 
-**wait_queue_head_t**
+### wait_queue_head_t
+
+ただのリスト
 
  * wait_queue_t task_list に wait_queue_t を繋ぐ ( __add_wait_queue )
- * タスクのポイタを保持するのは wait_queue_t
+   * task_truct のポインタを保持するのは wait_queue_t
  * DECLARE_WAIT_QUEUE_HEAD
  * init_waitqueue_head
 
@@ -23,10 +25,11 @@ struct __wait_queue_head {
 typedef struct __wait_queue_head wait_queue_head_t;
 ```
 
-**wait_queue_t**
+### wait_queue_t
 
  * private に task_struct のポインタをいれとく
- * flags ???
+   * flags ???
+   * WQ_FLAG_EXCLUSIVE を立てると wake_up, wake_up_nr が 1 から Nプロセスずつの起床になる
  * init_waitqueue_entry で初期化できる(メモリ確保はしない)
 
 ```c
@@ -155,12 +158,12 @@ http://wiki.bit-hive.com/linuxkernelmemo/pgdiff/?pg=%A5%D7%A5%ED%A5%BB%A5%B9%A4%
 ## TODO
 
  * wake_up 後のスケジューリングについて
-   * 優先度が ___待機から起床したプロセス > 起床させたプロセス___ の場合にプリエンプトする
+   * 優先度が ___待機から起床したプロセス > 起床させたプロセス(current) ___ の場合にプリエンプト要求を出す
+     * プリエンプト要求 = need_resched() こと
    * wake_up_*_sync の場合はプリエンプトをしない => WF_FLAGS が立っている
  * wait_queue_head_t の削除 API は?
  * プロセスコンテキスト/割り込みコンテキストでの使用方法
  * デバイスからの割り込みを擬似的に再現して wake_up 呼び出しできないかな
- * ~~prepare_to_wait, prepare_to_wait_exclusive の使い方~~
 
 ## wchan
 
