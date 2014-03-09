@@ -1,4 +1,4 @@
-# wait_for_completion
+# completion
 
  * 内部では wait_queue_t, schedule_timeout, set_current_state を組み合わて実装
  * スケジューリングされるのが wait_queue_t API との違い
