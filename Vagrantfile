@@ -75,6 +75,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider :virtualbox do |vb|
     vb.gui = true
+    vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    vb.customize ["modifyvm", :id, "--uartmode1", "file", "/tmp/vagrant-ttyS0.log"]
   end
 
   # Create a forwarded port mapping which allows access to a specific port

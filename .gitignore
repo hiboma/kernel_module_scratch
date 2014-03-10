@@ -44,3 +44,6 @@ GTAGS
 # ruby
 .bundle
 vendor/*
+
+# ignore tmp
+tmp/*
