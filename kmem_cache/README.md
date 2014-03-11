@@ -1,15 +1,56 @@
 ## kmem_cache
 
  * slab アロケータでの実装
- * kmem_cache_init 汎用キャッシュ
- * kmem_cache_create 特定用途用のキャッシュ
 
-[SReclaimable, SUnreclaim](https://github.com/hiboma/hiboma/blob/master/kernel/SReclaimable.md) についても読もう
+## see also 
+
+ * https://github.com/hiboma/hiboma/blob/master/kernel/SReclaimable.md
+ * https://github.com/hiboma/hiboma/blob/master/kernel/shrink_slab.md
 
 ## API
 
+ * kmem_cache_create
+   * 特定用途用のキャッシュ
+ * kmem_cache_init
+   * 汎用キャッシュ
+   * 何に使われているのかな?
+ * kmem_cache_destroy
+   * キャッシュを破棄してから呼ばないと oops
+ * kmem_cache_alloc
+ * kmem_cache_shrink
+ * struct shrinker, register_shrinker, unregister_shrinker
+```c
+/*
+ * A callback you can register to apply pressure to ageable caches.
+ *
+ * 'shrink' is passed a count 'nr_to_scan' and a 'gfpmask'.  It should
+ * look through the least-recently-used 'nr_to_scan' entries and
+ * attempt to free them up.  It should return the number of objects
+ * which remain in the cache.  If it returns -1, it means it cannot do
+ * any scanning at this time (eg. there is a risk of deadlock).
+ *
+ * The 'gfpmask' refers to the allocation we are currently trying to
+ * fulfil.
+ *
+ * Note that 'shrink' will be passed nr_to_scan == 0 when the VM is
+ * querying the cache size, so a fastpath for that case is appropriate.
+ */
+ 
+// LRU を nr_to_scan 個スキャンする
+// キャッシュに残すべきオブジェクトの数を返さないといけない
+// -1 を返すと現時点でスキャンできない状態とみなす (デッドロックの危険を回避するため?)
+// nr_to_scan == 0 を渡してキャッシュのサイズを問い合わせる。ので初回に限っては正しい
+struct shrinker {
+	int (*shrink)(struct shrinker *, int nr_to_scan, gfp_t gfp_mask);
+	int seeks;	/* seeks to recreate an obj */
+
+	/* These are for internal use */
+	struct list_head list;
+	long nr;	/* objs pending delete */
+};
+```
  * struct kmem_cache
-   * キャッシュデスクリプタ
+   * キャッシュデスクリプタ。強い
 ```c
 struct kmem_cache {
 /* 1) per-cpu data, touched during every alloc/free */
@@ -86,12 +127,6 @@ struct kmem_cache {
 	 */
 };
 ```
- 
- * kmem_cache_create
- * kmem_cache_destroy
-   * キャッシュを破棄してから呼ばないと oops
- * kmem_cache_alloc
- * kmem_cache_shrink
 
 ## /proc/slabinfo
 
@@ -101,6 +136,8 @@ kmem_cache_create したキャッシュが確認できる
 # name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
 foo_bar                0      0      8  337    1 : tunables  120   60    0 : slabdata      0      0      0
 ```
+
+フィールドの意味は ...
 
 ## SReclaimable, SUnreclaim
 
@@ -115,7 +152,7 @@ SUnreclaim:       145360 kB
 
 ## 間違った kmem_cache_destroy
 
-割り当てたキャッシュを kmem_cache_free せずに kmem_cache_destroy したら下記の通り
+割り当てたキャッシュを kmem_cache_free せずに kmem_cache_destroy したら下記の通りに BUG()
 
 ```
 slab error in kmem_cache_destroy(): cache `foo_bar': Can't free all objects
