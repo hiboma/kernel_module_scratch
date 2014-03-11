@@ -1,5 +1,6 @@
 #include <linux/module.h>
 #include <linux/debugfs.h>
+#include <linux/mm.h>
 
 MODULE_AUTHOR("hiroya");
 MODULE_DESCRIPTION("kmem_cache test");
@@ -18,6 +19,27 @@ struct foo_bar {
 static struct kmem_cache *cachep;
 struct dentry *dentry_kmem_cache;
 static int value;
+
+static int shrink_foo_bar(struct shrinker *shrink, int nr, gfp_t gfp_mask)
+{
+	struct foo_bar *foo;
+	int trial = nr;
+	if (nr) {
+		while (!list_empty(&caches) || trial > 0) {
+			foo = list_entry(caches.next, struct foo_bar, next);
+			list_del(&foo->next);
+			kmem_cache_free(cachep, foo);
+			trial--;
+		}
+	}
+
+	return 128;
+}
+
+static struct shrinker foo_bar_shrinker = {
+	.shrink = shrink_foo_bar,
+	.seeks  = 2,
+};
 
 static void init_once(void *p)
 {
@@ -58,12 +80,15 @@ static int __init cachep_init(void)
 		return -ENODEV;
 	}
 
+	register_shrinker(&foo_bar_shrinker);
 	return 0;
 }
 
 static void __exit cachep_exit(void)
 {
 	struct foo_bar *foo;
+
+	unregister_shrinker(&foo_bar_shrinker);
 
 	/* need lock */
 	while (!list_empty(&caches)) {
