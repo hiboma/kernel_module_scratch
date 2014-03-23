@@ -2,6 +2,8 @@
 
 ## API
 
+ハンドラは `irq_handler_t` として `struct irq_action .handler` に 登録される
+
 ```c
 request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 	    const char *name, void *dev)
@@ -38,9 +40,180 @@ void free_irq(unsigned int irq, void *dev_id)
  12:        136    XT-PIC-XT        i8042
 ```
 
-## reading
+## XT-PIC ?
 
-request_irq
+ * 8259A 割り込みコントローラー
+   * IRCが 15個
+   * 特定にCPUにしか割り込めない
+ * IRQ2 でマスタとスレーブがカスケードされている
+
+## irq_exit と softirqs
+
+割り込みコンテキストを抜ける際に local softirq が pending されていれば処理する
+ * x86 アーキテクチャの場合 invoke_softirq -> __do_softirq を呼び出す
+
+```c
+/*
+ * Exit an interrupt context. Process softirqs if needed and possible:
+ */
+void irq_exit(void)
+{
+	account_system_vtime(current);
+	trace_hardirq_exit();
+	sub_preempt_count(IRQ_EXIT_OFFSET);
+    // ここ
+	if (!in_interrupt() && local_softirq_pending())
+       // __do_softirq を呼ぶ
+		invoke_softirq();
+
+#ifdef CONFIG_NO_HZ
+	/* Make sure that timer wheel updates are propagated */
+	rcu_irq_exit();
+	if (idle_cpu(smp_processor_id()) && !in_interrupt() && !need_resched())
+		tick_nohz_stop_sched_tick(0);
+#endif
+	preempt_enable_no_resched();
+}
+```
+
+irq_exit は do_IRQ などで呼びだされている
+
+ * ハードウェア割り込みを受ける
+ * ハードウェア割り込みハンドラを処理
+ * IRQ_HANDLED 返して、割り込み可能にしてからたまってる sottirq をやっつける?
+
+```c
+/*
+ * do_IRQ handles all normal device IRQ's (the special
+ * SMP cross-CPU interrupts have their own specific
+ * handlers).
+ */
+unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
+{
+	struct pt_regs *old_regs = set_irq_regs(regs);
+
+	/* high bit used in ret_from_ code  */
+	unsigned vector = ~regs->orig_ax;
+	unsigned irq;
+
+	exit_idle();
+	irq_enter();
+
+	irq = __get_cpu_var(vector_irq)[vector];
+
+	if (!handle_irq(irq, regs)) {
+        // apic_eoi で APIC_EOI, APIC_EOI_ACK ?
+        // End Of Interrupt を local APIC に返して割り込みハンドラを終える
+		ack_APIC_irq();
+
+		if (printk_ratelimit())
+			pr_emerg("%s: %d.%d No irq handler for vector (irq %d)\n",
+				__func__, smp_processor_id(), vector, irq);
+	}
+
+    // ここで softirq をやっつける
+    // APIC_EOI を返したので、ハードウェア割り込み可能?
+	irq_exit();
+
+	set_irq_regs(old_regs);
+	return 1;
+}
+```
+
+## __do_softirq
+
+ * pending されている softirq をやっつける
+ * pending の処理は MAX_SOFTIRQ_RESTART 回繰り返されるが、それでも pending していたら ksoftirqd を起床させる
+   * 「割り込みの負荷が高い場合に ksoftirqd が起床する」ってのがこれ
+
+```
+/*
+ * We restart softirq processing MAX_SOFTIRQ_RESTART times,
+ * and we fall back to softirqd after that.
+ *
+ * This number has been established via experimentation.
+ * The two things to balance is latency against fairness -
+ * we want to handle softirqs as soon as possible, but they
+ * should not be able to lock up the box.
+ */
+#define MAX_SOFTIRQ_RESTART 10
+
+asmlinkage void __do_softirq(void)
+{
+	struct softirq_action *h;
+	__u32 pending;
+	int max_restart = MAX_SOFTIRQ_RESTART;
+	int cpu;
+
+    // pending している softirq の数
+	pending = local_softirq_pending();
+	account_system_vtime(current);
+
+    // ?
+	__local_bh_disable((unsigned long)__builtin_return_address(0),
+				SOFTIRQ_OFFSET);
+	lockdep_softirq_enter();
+
+	cpu = smp_processor_id();
+restart:
+	/* Reset the pending bitmask before enabling irqs */
+    // local IRQ を enable にすると pending の数値が変わってしまうので
+    // 0 に戻しておくのかな?
+	set_softirq_pending(0);
+
+    // softirq を処理している間は local IRQ を on にしておいて良い
+	local_irq_enable();
+
+	h = softirq_vec;
+
+	do {
+		if (pending & 1) {
+			int prev_count = preempt_count();
+            // /proc/softirq で表示される統計をインクリメント
+			kstat_incr_softirqs_this_cpu(h - softirq_vec);
+
+			trace_softirq_entry(h, softirq_vec);
+            // ここで softirq のハンドラを実行
+			h->action(h);
+			trace_softirq_exit(h, softirq_vec);
+			if (unlikely(prev_count != preempt_count())) {
+				printk(KERN_ERR "huh, entered softirq %td %s %p"
+				       "with preempt_count %08x,"
+				       " exited with %08x?\n", h - softirq_vec,
+				       softirq_to_name[h - softirq_vec],
+				       h->action, prev_count, preempt_count());
+				preempt_count() = prev_count;
+			}
+
+			rcu_bh_qs(cpu);
+		}
+		h++;
+		pending >>= 1;
+	} while (pending);
+
+    // pending を読むので local IRQ 禁止
+	local_irq_disable();
+
+	pending = local_softirq_pending();
+
+    // 再度 pending している softirq を処理する
+	if (pending && --max_restart)
+		goto restart;
+
+    // ksoftirqd を起床させる
+	if (pending)
+		wakeup_softirqd();
+
+	lockdep_softirq_exit();
+
+	account_system_vtime(current);
+	__local_bh_enable(SOFTIRQ_OFFSET);
+}
+```
+
+## request_irq
+
+request_threaded_irq のラッパー
 
 ```
 static inline int __must_check
@@ -51,7 +224,7 @@ request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
 }
 ```
 
-request_threaded_irq
+## request_threaded_irq
 
  * irq_action の kzalloc での割り当て
 
@@ -198,7 +371,7 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
 EXPORT_SYMBOL(request_threaded_irq);
 ```
 
-__setup_irq
+## __setup_irq
 
  * irq_desc に irqaction を fugafuga する
 
