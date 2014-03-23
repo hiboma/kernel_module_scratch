@@ -126,7 +126,7 @@ unsigned int __irq_entry do_IRQ(struct pt_regs *regs)
  * pending の処理は MAX_SOFTIRQ_RESTART 回繰り返されるが、それでも pending していたら ksoftirqd を起床させる
    * 「割り込みの負荷が高い場合に ksoftirqd が起床する」ってのがこれ
 
-```
+```c
 /*
  * We restart softirq processing MAX_SOFTIRQ_RESTART times,
  * and we fall back to softirqd after that.
