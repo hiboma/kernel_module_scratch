@@ -7,9 +7,14 @@ http://www.ibm.com/developerworks/jp/linux/library/l-tasklets/
    * 割り込みコンテキストでしか利用出来ない softirq, tasklet と比較するとよい
  * _worker threads_ と呼ばれるカーネルスレッド
 
+```
+root      1938  0.0  0.0      0     0 ?        S    14:40   0:00  \_ [workqueue/0]
+root      1939  0.0  0.0      0     0 ?        S    14:40   0:00  \_ [workqueue/1]
+```
+
 ## API
 
-キュー
+### queue
 
  * struct workqueue_struct
 
@@ -40,28 +45,60 @@ struct cpu_workqueue_struct {
    * キューを一掃する
  * destroy_workqueue
 
-ワーカー
+### worker
 
  * struct work_struct
  * INIT_WORK
  * queue_work
 
-遅延ワーカー
+### 遅延ワーカー
 
  * struct delayed_work
  * INIT_DELAYED_WORK
  * queue_delayed_work
    * 内部で add_timer を使って遅延を実現している
 
-スケジューリング?
+### keventd_wq
 
  * schedule_work
  * schedule_delayed_work
 
+共有の workqueue ( global workqueue  = keventd_wq ) にタスクを投げる
+
+ * keventd_wq は _events/N_ のカーネルスレッド
 ```
-root      1938  0.0  0.0      0     0 ?        S    14:40   0:00  \_ [workqueue/0]
-root      1939  0.0  0.0      0     0 ?        S    14:40   0:00  \_ [workqueue/1]
+[vagrant@vagrant-centos65 ~]$ ps aux | grep events
+root        19  0.0  0.0      0     0 ?        S    11:17   0:00 [events/0]
+root        20  0.0  0.0      0     0 ?        S    11:17   0:00 [events/1]
+root        21  0.0  0.0      0     0 ?        S    11:17   0:00 [events/2]
+root        22  0.0  0.0      0     0 ?        S    11:17   0:00 [events/3]
 ```
+
+ * schedule_work の中身。 queue_work に keventd_wq を呼び出すラッパー
+```c
+static struct workqueue_struct *keventd_wq __read_mostly;
+
+/**
+ * schedule_work - put work task in global workqueue
+ * @work: job to be done
+ *
+ * Returns zero if @work was already on the kernel-global workqueue and
+ * non-zero otherwise.
+ *
+ * This puts a job in the kernel-global workqueue if it was not already
+ * queued and leaves it in the same position on the kernel-global
+ * workqueue otherwise.
+ */
+int schedule_work(struct work_struct *work)
+{
+	return queue_work(keventd_wq, work);
+}
+EXPORT_SYMBOL(schedule_work);
+```
+
+ * 自前で workqueue_struct を作らなくていいのでお手軽。
+   * 滅多によびだししない work_struct であればメモリの節約になる
+ * ただし他のコンポーネントからも呼び出されるので実行時間が長いと副作用が大きい
 
 ## queue_work から内部実装を見る
 

@@ -43,6 +43,11 @@ static ssize_t wq_write(struct file *file, const char __user *buf,
         printk("work is pending\n");
         return -EAGAIN;
     }
+
+    if (schedule_work((struct work_struct *)job) == 0) {
+	pr_info("schedule_work is pending\n");
+	return -EAGAIN;
+    }
 	
 	return count;
 }
