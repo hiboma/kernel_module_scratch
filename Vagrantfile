@@ -14,7 +14,7 @@ $script = <<SCRIPT
 :
 : kernel-module-development
 (
-    rpm -q kernel-devel || rpm -ivh http://mirror.centos.org/centos/6/os/x86_64/Packages/kernel-devel-2.6.32-431.el6.x86_64.rpm
+    rpm -q kernel-devel || rpm -ivh http://mirror.centos.org/centos/6/os/x86_64/Packages/kernel-devel-2.6.32-504.el6.x86_64.rpm
     which gcc  || yum install -y 'Development Tools'
     which git  || yum install -y git
     which wget || yum install -y wget
