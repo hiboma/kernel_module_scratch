@@ -1,4 +1,9 @@
 
+## path_lookup
+
+```c
+int path_lookup(const char *name, unsigned int flags,
+```
 
 ## kern_path
 
@@ -46,8 +51,8 @@ struct path から
  *  - dentry cache is untrusted; force a real lookup
  *  - suppress terminal automount
  */
-#define LOOKUP_FOLLOW		 1
-#define LOOKUP_DIRECTORY	 2 
+#define LOOKUP_FOLLOW		 1 // symlink を辿る
+#define LOOKUP_DIRECTORY	 2 // 探す対象がディレクトリであることを期待する? ENOTDIR
 #define LOOKUP_CONTINUE		 4 
 #define LOOKUP_AUTOMOUNT	 8
 #define LOOKUP_PARENT		16
