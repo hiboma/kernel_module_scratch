@@ -14,7 +14,7 @@ $script = <<SCRIPT
 :
 : kernel-module-development
 (
-    rpm -q kernel-devel || rpm -ivh http://mirror.centos.org/centos/6/os/x86_64/Packages/kernel-devel-2.6.32-504.el6.x86_64.rpm
+    rpm -q kernel-devel || rpm -ivh http://mirror.centos.org/centos/6/os/x86_64/Packages/kernel-devel-2.6.32-573.el6.x86_64.rpm
     which gcc  || yum install -y 'Development Tools'
     which git  || yum install -y git
     which wget || yum install -y wget
@@ -63,13 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
   # please see the online documentation at vagrantup.com.
-
-  # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "CentOS 6.5 x86_64"
-
-  # The url from where the 'config.vm.box' box will be fetched if it
-  # doesn't already exist on the user's system.
-  config.vm.box_url = "https://github.com/2creatives/vagrant-centos/releases/download/v6.5.1/centos65-x86_64-20131205.box"
+  config.vm.box = "bento/centos-6.7"
 
   config.vm.provision "shell", inline: $script
 
