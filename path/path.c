@@ -13,6 +13,7 @@ static int __init path_init(void)
 	struct path path;
 	struct vfsmount *mnt;
 	struct dentry *dentry;
+	struct nameidata nd;
 
 	res = kern_path("/", LOOKUP_FOLLOW, &path);
 	if (res) {
@@ -29,6 +30,14 @@ static int __init path_init(void)
 
 	mntput(mnt);
 	dput(dentry);
+
+	res = path_lookup("/tmp", LOOKUP_PARENT, &nd);
+	if (res) {
+		pr_err("failed path_lookup: %d\n", res);
+		return res;
+	}
+	pr_info("path_lookup: %s\n", nd.saved_names);
+	
 	return 0;
 }
 
